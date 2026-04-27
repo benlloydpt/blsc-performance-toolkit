@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLSC Performance Toolkit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, sans-serif;
+      background: #0d0d0d;
+      color: #ffffff;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    .nav-wordmark img {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+
+    .nav-tagline {
+      font-size: 0.75rem;
+      color: #888888;
+      font-weight: 400;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 64px 24px 48px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #00fff0;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 1.0625rem;
+      color: #888888;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Tools Grid ── */
+    .tools-section {
+      flex: 1;
+      padding: 0 24px 64px;
+      max-width: 1040px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .tool-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      border-color: #2d7ee0;
+      background: #1e1e1e;
+    }
+
+    .tool-card.coming-soon {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .tool-card.coming-soon:hover {
+      border-color: #2a2a2a;
+      background: #1a1a1a;
+    }
+
+    .tool-card-body {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .tool-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: #111111;
+      border: 1px solid #333333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.25rem;
+    }
+
+    .tool-info h3 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tool-info p {
+      font-size: 0.875rem;
+      color: #888888;
+      line-height: 1.5;
+    }
+
+    .tool-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .badge {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .badge-live {
+      background: rgba(0, 255, 240, 0.1);
+      color: #00fff0;
+      border: 1px solid rgba(0, 255, 240, 0.25);
+    }
+
+    .badge-soon {
+      background: rgba(136, 136, 136, 0.1);
+      color: #888888;
+      border: 1px solid rgba(136, 136, 136, 0.2);
+    }
+
+    .arrow-icon {
+      color: #2d7ee0;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    /* ── CTA Banner ── */
+    .cta-section {
+      padding: 0 24px 80px;
+      max-width: 1040px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .cta-banner {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 40px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2d7ee0, #00fff0);
+    }
+
+    .cta-banner h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .cta-banner p {
+      font-size: 1rem;
+      color: #888888;
+      max-width: 480px;
+      margin: 0 auto 28px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: #2d7ee0;
+      color: #ffffff;
+      border-radius: 6px;
+      padding: 12px 28px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: #00fff0;
+      color: #0d0d0d;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid #1f1f1f;
+      padding: 24px;
+      text-align: center;
+      color: #888888;
+      font-size: 0.8125rem;
+    }
+
+    footer .footer-wordmark {
+      font-weight: 700;
+      color: #2d7ee0;
+    }
+
+    /* ── Responsive ── */
+    @media (min-width: 768px) {
+      nav {
+        padding: 20px 48px;
+      }
+
+      .hero {
+        padding: 80px 48px 56px;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .tools-section {
+        padding: 0 48px 72px;
+      }
+
+      .tools-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .cta-section {
+        padding: 0 48px 80px;
+      }
+
+      footer {
+        padding: 28px 48px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      nav {
+        padding: 20px 64px;
+      }
+
+      .hero {
+        padding: 96px 64px 64px;
+      }
+
+      .tools-section {
+        padding: 0 64px 80px;
+      }
+
+      .cta-section {
+        padding: 0 64px 96px;
+      }
+
+      footer {
+        padding: 28px 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-wordmark">
+      <img src="branding/BLSC_LOGO_no_faint_border.png" alt="BLSC — Ben Lloyd Strength &amp; Conditioning">
+    </a>
+    <span class="nav-tagline">Train Smarter. Perform Better.</span>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <p class="hero-label">Performance Toolkit</p>
+    <h1>Know your numbers.<br>Train with intent.</h1>
+    <p>Free tools built for athletes who take their training seriously. Calculate, assess, and improve across running, strength, and hybrid performance.</p>
+  </section>
+
+  <!-- Tools -->
+  <section class="tools-section">
+    <div class="tools-grid">
+
+      <a href="/running-pace-calculator" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-icon">🏃</div>
+          <div class="tool-info">
+            <h3>Running Pace Calculator</h3>
+            <p>Convert pace, speed, and finish times across any distance.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-live">Live</span>
+          <span class="arrow-icon">→</span>
+        </div>
+      </a>
+
+      <a href="/strength-standards" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-icon">🏋️</div>
+          <div class="tool-info">
+            <h3>Strength Standards Calculator</h3>
+            <p>See where your lifts rank against bodyweight-relative benchmarks.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-live">Live</span>
+          <span class="arrow-icon">→</span>
+        </div>
+      </a>
+
+      <div class="tool-card coming-soon">
+        <div class="tool-card-body">
+          <div class="tool-icon">⚡</div>
+          <div class="tool-info">
+            <h3>Hybrid Readiness Score</h3>
+            <p>Assess your balance across strength and endurance domains.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="tool-card coming-soon">
+        <div class="tool-card-body">
+          <div class="tool-icon">🎯</div>
+          <div class="tool-info">
+            <h3>HYROX Finish Time Predictor</h3>
+            <p>Estimate your HYROX time based on your current fitness data.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="tool-card coming-soon">
+        <div class="tool-card-body">
+          <div class="tool-icon">📈</div>
+          <div class="tool-info">
+            <h3>Training Age Calculator</h3>
+            <p>Understand your development stage and set realistic expectations.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="tool-card coming-soon">
+        <div class="tool-card-body">
+          <div class="tool-icon">❤️</div>
+          <div class="tool-info">
+            <h3>Zone 2 Heart Rate Finder</h3>
+            <p>Pin your aerobic base zone for smarter, data-driven cardio.</p>
+          </div>
+        </div>
+        <div class="tool-meta">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // Keep live tools at the top — runs once on load
+    const grid = document.querySelector('.tools-grid');
+    const cards = [...grid.children];
+    cards.sort((a, b) => {
+      const aLive = !a.classList.contains('coming-soon');
+      const bLive = !b.classList.contains('coming-soon');
+      return bLive - aLive;
+    });
+    cards.forEach(card => grid.appendChild(card));
+  </script>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-banner">
+      <h2>Want a programme built around your numbers?</h2>
+      <p>Use the tools — then take the next step. A free call to see if BLSC coaching is the right fit for you.</p>
+      <a href="https://calendly.com/blsc" class="btn-primary">Book a free call</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p><span class="footer-wordmark">BLSC</span> &nbsp;·&nbsp; Ben Lloyd Strength &amp; Conditioning &nbsp;·&nbsp; Train Smarter. Perform Better.</p>
+  </footer>
+
+</body>
+</html>
