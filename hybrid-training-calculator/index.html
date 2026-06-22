@@ -98,8 +98,10 @@
     .tab-nav {
       display: flex;
       overflow-x: auto;
+      overflow-y: hidden;
       scrollbar-width: none;           /* Firefox */
       -ms-overflow-style: none;        /* IE/Edge */
+      touch-action: pan-x;             /* mobile: horizontal scroll only */
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       padding: 0 24px;
