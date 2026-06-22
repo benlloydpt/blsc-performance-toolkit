@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hybrid Training Calculator — BLSC</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-primary:    #2d7ee0;
+      --color-accent:     #00fff0;
+      --color-bg:         #0d0d0d;
+      --color-surface:    #1a1a1a;
+      --color-surface-2:  #111111;
+      --color-border:     #2a2a2a;
+      --color-border-2:   #333333;
+      --color-text:       #ffffff;
+      --color-muted:      #888888;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      background: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Site Header / Nav ─────────────────────────────────────────── */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    .site-header .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .site-header .brand-logo {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+
+    .site-header .brand-name {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.2;
+    }
+
+    .site-header .tagline {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── Page Hero ─────────────────────────────────────────────────── */
+    .page-hero {
+      padding: 32px 24px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .page-hero h1 span { color: var(--color-primary); }
+
+    .page-hero p {
+      font-size: 1rem;
+      color: var(--color-muted);
+      font-weight: 400;
+    }
+
+    /* ─── Tab Navigation ─────────────────────────────────────────────── */
+    .tab-nav {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;           /* Firefox */
+      -ms-overflow-style: none;        /* IE/Edge */
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 24px;
+      gap: 0;
+    }
+
+    .tab-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+    .tab-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--color-muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 14px 18px;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+      position: relative;
+      top: 1px; /* sit on top of the container's bottom border */
+    }
+
+    .tab-btn:hover {
+      color: var(--color-text);
+    }
+
+    .tab-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+
+    /* ─── Main Content Area ─────────────────────────────────────────── */
+    .main-content {
+      flex: 1;
+      padding: 32px 24px;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ─── Tab Panels ────────────────────────────────────────────────── */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Placeholder card shown in Stage 1 — will be replaced by real content */
+    .placeholder-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .placeholder-card h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .placeholder-card p {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    .placeholder-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    /* ─── Calculator Shared Styles ──────────────────────────────────── */
+
+    .calc-header {
+      margin-bottom: 24px;
+    }
+
+    .calc-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .calc-header p {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    .calc-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .calc-card h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+      margin-bottom: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .field label .hint {
+      font-weight: 400;
+      color: var(--color-muted);
+      margin-left: 6px;
+    }
+
+    /* Number inputs with optional unit suffix */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .input-row input[type="number"] {
+      flex: 1;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border-2);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      padding: 10px 14px;
+      width: 100%;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    /* Unit toggle (kg / lbs) */
+    .unit-toggle {
+      display: flex;
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border-2);
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .unit-toggle input[type="radio"] { display: none; }
+
+    .unit-toggle label {
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+
+    .unit-toggle input[type="radio"]:checked + label {
+      background: var(--color-primary);
+      color: var(--color-text);
+    }
+
+    /* Action button */
+    .btn-calc {
+      display: block;
+      width: 100%;
+      background: var(--color-primary);
+      color: var(--color-text);
+      border: none;
+      border-radius: 6px;
+      padding: 14px 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-calc:hover {
+      background: var(--color-accent);
+      color: var(--color-bg);
+    }
+
+    /* Result panel */
+    .result-panel {
+      display: none;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .result-panel.visible { display: block; }
+
+    .result-panel h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+      margin-bottom: 16px;
+    }
+
+    .result-primary {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .result-value {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--color-accent);
+      line-height: 1;
+    }
+
+    .result-unit {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-muted);
+    }
+
+    .result-label {
+      font-size: 0.875rem;
+      color: var(--color-muted);
+    }
+
+    .error-msg {
+      display: none;
+      color: #ff6b6b;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ─── Split time inputs (HH : MM : SS and MM : SS / km) ─────────── */
+
+    .split-inputs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .split-inputs input[type="number"] {
+      width: 60px;
+      text-align: center;
+      padding: 10px 6px;
+    }
+
+    .split-inputs .sep {
+      color: var(--color-muted);
+      font-size: 1.1rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .split-inputs .unit-label {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+
+    /* Shown/hidden custom distance input */
+    .custom-distance-wrap {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .custom-distance-wrap.visible { display: block; }
+
+    /* Instruction line above the three fields */
+    .two-field-hint {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+
+    /* ─── VO2 Max — method field switching & category badge ─────────── */
+
+    /* Method-specific input blocks — toggled by JS */
+    .method-fields { display: none; }
+    .method-fields.active { display: contents; }
+
+    /* Category badge shown in result panel */
+    .vo2-category {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .vo2-category.poor        { background: #3a1414; color: #ff6b6b; }
+    .vo2-category.below-avg   { background: #3a2714; color: #ffaa44; }
+    .vo2-category.average     { background: #2a2e14; color: #d4e44a; }
+    .vo2-category.good        { background: #143a1f; color: #4cdd80; }
+    .vo2-category.excellent   { background: #0e312e; color: var(--color-accent); }
+
+    /* ─── Recovery Score — sliders & traffic light ───────────────────── */
+
+    /* Range slider base */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--color-border-2);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]:hover::-webkit-slider-thumb { background: var(--color-accent); }
+    input[type="range"]:hover::-moz-range-thumb     { background: var(--color-accent); }
+
+    /* Slider field layout */
+    .slider-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .slider-header label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .slider-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-accent);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    /* Sub-label for optional field grouping */
+    .field-sub-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+
+    /* Two paired inputs side by side (today + baseline) */
+    .paired-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .paired-inputs .field label {
+      font-size: 0.8rem;
+    }
+
+    /* Optional section separator */
+    .optional-divider {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+      border-top: 1px solid var(--color-border);
+      padding-top: 16px;
+      margin-top: 4px;
+    }
+
+    .optional-divider span {
+      background: var(--color-surface);
+      padding-right: 8px;
+    }
+
+    /* Traffic light result badge */
+    .traffic-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
+    .traffic-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .traffic-badge.red    { background: #3a1414; color: #ff5555; }
+    .traffic-badge.red    .traffic-dot { background: #ff5555; }
+    .traffic-badge.amber  { background: #3a2a10; color: #ffaa33; }
+    .traffic-badge.amber  .traffic-dot { background: #ffaa33; }
+    .traffic-badge.green  { background: #103a1a; color: #44dd77; }
+    .traffic-badge.green  .traffic-dot { background: #44dd77; }
+
+    /* Score /100 suffix */
+    .score-suffix {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-muted);
+    }
+
+    /* ─── Endurance Nutrition Planner ───────────────────────────────── */
+
+    /* Day section — outer container for each event day */
+    .day-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+    }
+
+    .day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .day-header h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-muted);
+    }
+
+    .btn-remove-day {
+      background: none;
+      border: none;
+      color: #ff5555;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      padding: 2px 6px;
+    }
+
+    .btn-remove-day:hover { color: #ff8888; }
+
+    /* Block cards — nested inside each day */
+    .blocks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .block-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-2);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .block-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .btn-remove-block {
+      background: none;
+      border: none;
+      color: #ff5555;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      padding: 2px 6px;
+    }
+
+    .btn-remove-block:hover { color: #ff8888; }
+
+    /* Outline button — used for Add Block / Add Day */
+    .btn-outline {
+      background: transparent;
+      color: var(--color-primary);
+      border: 2px solid var(--color-primary);
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: var(--color-text);
+    }
+
+    .btn-outline:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    #btn-add-day {
+      display: block;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    /* Phase result sections */
+    .phase-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .phase-header { margin-bottom: 16px; }
+
+    .phase-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .phase-desc {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+    }
+
+    /* 3-col nutrient grid */
+    .nutrient-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .nutrient-item {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .nutrient-label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-muted);
+      margin-bottom: 6px;
+    }
+
+    .nutrient-value {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--color-accent);
+    }
+
+    /* Per-day result */
+    .day-result + .day-result {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .day-result-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Expandable block breakdown */
+    details.block-breakdown summary {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      cursor: pointer;
+      list-style: none;
+      padding: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    details.block-breakdown summary::-webkit-details-marker { display: none; }
+
+    details.block-breakdown summary::before {
+      content: '▶';
+      font-size: 0.55rem;
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+
+    details.block-breakdown[open] summary::before { transform: rotate(90deg); }
+
+    .breakdown-content {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .breakdown-block {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-2);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .breakdown-block-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .breakdown-row {
+      display: flex;
+      gap: 16px;
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .breakdown-row span { color: var(--color-muted); margin-right: 2px; }
+    .breakdown-row strong { color: var(--color-text); font-weight: 700; }
+
+    /* Loading / recovery plan table rows */
+    .plan-table {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .plan-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .plan-row:last-child { border-bottom: none; }
+
+    .plan-row .pr-label {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      font-weight: 600;
+    }
+
+    .plan-row .pr-value {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--color-accent);
+    }
+
+    .no-loading-msg {
+      font-size: 0.9rem;
+      color: var(--color-muted);
+    }
+
+    /* ─── Info helper dropdowns (nutrition planner only) ────────────── */
+
+    /* Wraps the button + its helper as a tight unit */
+    .btn-helper-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    details.info-helper {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    details.info-helper summary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-border-2);
+      color: var(--color-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    details.info-helper summary::-webkit-details-marker { display: none; }
+
+    details.info-helper summary:hover,
+    details.info-helper[open] summary {
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+
+    .info-helper-content {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      line-height: 1.65;
+      /* Full width below the wrap, so break out of the flex row */
+      flex-basis: 100%;
+    }
+
+    /* ─── CTA Section ───────────────────────────────────────────────── */
+    .cta-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 32px;
+      text-align: center;
+    }
+
+    .cta-section p {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .cta-section strong {
+      color: var(--color-text);
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--color-primary);
+      color: var(--color-text);
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent);
+      color: var(--color-bg);
+    }
+
+    /* ─── Footer ────────────────────────────────────────────────────── */
+    .site-footer {
+      padding: 24px;
+      text-align: center;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    .site-footer p {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+    }
+
+    .site-footer a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .site-footer a:hover {
+      color: var(--color-accent);
+    }
+
+    /* ─── Responsive ────────────────────────────────────────────────── */
+    @media (min-width: 768px) {
+      .page-hero { padding: 48px 32px 32px; }
+      .page-hero h1 { font-size: 2.5rem; }
+      .tab-btn { font-size: 0.9375rem; padding: 16px 22px; }
+      .main-content { padding: 40px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Site Header ───────────────────────────────────────────────── -->
+  <header class="site-header">
+    <a href="/blsc-performance-toolkit/" class="brand-link">
+      <img src="../branding/BLSC_LOGO_no_faint_border.png" alt="BLSC logo" class="brand-logo" />
+      <span class="brand-name">Ben Lloyd — Strength &amp; Conditioning</span>
+    </a>
+    <span class="tagline">Performance Toolkit</span>
+  </header>
+
+  <!-- ─── Page Hero ─────────────────────────────────────────────────── -->
+  <section class="page-hero">
+    <h1>Hybrid Training <span>Calculator</span></h1>
+    <p>Five tools. One dashboard. Built for athletes who train across disciplines.</p>
+  </section>
+
+  <!-- ─── Tab Navigation ────────────────────────────────────────────── -->
+  <nav class="tab-nav" role="tablist" aria-label="Calculator tabs">
+    <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="panel-1rm"         data-tab="1rm">1RM Calculator</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-pace"        data-tab="pace">Running Pace</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-vo2"         data-tab="vo2">VO2 Max Estimator</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-recovery"    data-tab="recovery">Recovery Score</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-nutrition"   data-tab="nutrition">Nutrition Planner</button>
+  </nav>
+
+  <!-- ─── Main Content ──────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Tab: 1RM Calculator -->
+    <section id="panel-1rm" class="tab-panel active" role="tabpanel" aria-labelledby="tab-1rm">
+
+      <div class="calc-header">
+        <h2>1RM Calculator</h2>
+        <p>Estimate your one-rep max from a submaximal lift.</p>
+      </div>
+
+      <!-- Inputs -->
+      <div class="calc-card">
+        <h3>Your Lift</h3>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="orm-weight">Weight lifted</label>
+            <div class="input-row">
+              <input type="number" id="orm-weight" placeholder="e.g. 100" min="1" max="999" step="0.5" />
+              <div class="unit-toggle">
+                <input type="radio" id="orm-kg" name="orm-unit" value="kg" checked />
+                <label for="orm-kg">kg</label>
+                <input type="radio" id="orm-lbs" name="orm-unit" value="lbs" />
+                <label for="orm-lbs">lbs</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="orm-reps">Reps performed <span class="hint">(1–20)</span></label>
+            <input type="number" id="orm-reps" placeholder="e.g. 5" min="1" max="20" step="1" />
+          </div>
+
+        </div>
+        <button class="btn-calc" id="orm-calc-btn">Calculate 1RM</button>
+        <p class="error-msg" id="orm-error"></p>
+      </div>
+
+      <!-- Result -->
+      <div class="result-panel" id="orm-result">
+        <h3>Estimated 1RM</h3>
+        <div class="result-primary">
+          <span class="result-value" id="orm-result-value">—</span>
+          <span class="result-unit" id="orm-result-unit">kg</span>
+        </div>
+        <p class="result-label" id="orm-result-note"></p>
+      </div>
+
+    </section>
+
+    <!-- Tab: Running Pace Calculator -->
+    <section id="panel-pace" class="tab-panel" role="tabpanel" aria-labelledby="tab-pace">
+
+      <div class="calc-header">
+        <h2>Running Pace Calculator</h2>
+        <p>Fill in any two fields — the third will be calculated for you.</p>
+      </div>
+
+      <!-- Inputs -->
+      <div class="calc-card">
+        <h3>Fill in <span style="color:#ff4444;">TWO</span> fields</h3>
+        <div class="field-group">
+
+          <!-- Distance -->
+          <div class="field">
+            <label for="pace-dist-select">Distance</label>
+            <select id="pace-dist-select">
+              <option value="">— leave blank to solve —</option>
+              <option value="1">1 km</option>
+              <option value="5">5 km</option>
+              <option value="8">8 km</option>
+              <option value="10">10 km</option>
+              <option value="15">15 km</option>
+              <option value="21.0975">Half Marathon — 21.1 km</option>
+              <option value="30">30 km</option>
+              <option value="42.195">Marathon — 42.2 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+              <option value="custom">Custom distance…</option>
+            </select>
+            <div class="custom-distance-wrap" id="pace-custom-wrap">
+              <input type="number" id="pace-dist-custom" placeholder="Distance in km" min="0.1" max="9999" step="0.1" />
+            </div>
+          </div>
+
+          <!-- Time -->
+          <div class="field">
+            <label>Time <span class="hint">hours / mins / secs</span></label>
+            <div class="split-inputs">
+              <input type="number" id="pace-time-h" placeholder="HH" min="0" max="99" step="1" aria-label="Hours" />
+              <span class="sep">h</span>
+              <input type="number" id="pace-time-m" placeholder="MM" min="0" max="59" step="1" aria-label="Minutes" />
+              <span class="sep">m</span>
+              <input type="number" id="pace-time-s" placeholder="SS" min="0" max="59" step="1" aria-label="Seconds" />
+              <span class="sep">s</span>
+            </div>
+          </div>
+
+          <!-- Pace -->
+          <div class="field">
+            <label>Pace <span class="hint">per km</span></label>
+            <div class="split-inputs">
+              <input type="number" id="pace-min" placeholder="MM" min="0" max="59" step="1" aria-label="Pace minutes" />
+              <span class="sep">:</span>
+              <input type="number" id="pace-sec" placeholder="SS" min="0" max="59" step="1" aria-label="Pace seconds" />
+              <span class="unit-label">/ km</span>
+            </div>
+          </div>
+
+        </div>
+        <button class="btn-calc" id="pace-calc-btn">Calculate</button>
+        <p class="error-msg" id="pace-error"></p>
+      </div>
+
+      <!-- Result -->
+      <div class="result-panel" id="pace-result">
+        <h3 id="pace-result-heading">Result</h3>
+        <div class="result-primary">
+          <span class="result-value" id="pace-result-value">—</span>
+        </div>
+        <p class="result-label" id="pace-result-note"></p>
+      </div>
+
+    </section>
+
+    <!-- Tab: VO2 Max Estimator -->
+    <section id="panel-vo2" class="tab-panel" role="tabpanel" aria-labelledby="tab-vo2">
+
+      <div class="calc-header">
+        <h2>VO2 Max Estimator</h2>
+        <p>Estimate your aerobic capacity from a field test or recent race.</p>
+      </div>
+
+      <!-- Method selector -->
+      <div class="calc-card">
+        <h3>Method</h3>
+        <div class="field">
+          <label for="vo2-method">Estimation method</label>
+          <select id="vo2-method">
+            <option value="cooper">Cooper Test — 12-minute run</option>
+            <option value="race">Race Time</option>
+            <option value="rockport">Rockport Walk Test — 1-mile walk</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inputs card -->
+      <div class="calc-card">
+        <h3>Your Details</h3>
+        <div class="field-group">
+
+          <!-- Always visible: age + sex -->
+          <div class="field">
+            <label for="vo2-age">Age</label>
+            <input type="number" id="vo2-age" placeholder="e.g. 35" min="18" max="80" step="1" />
+          </div>
+
+          <div class="field">
+            <label>Sex</label>
+            <div class="unit-toggle">
+              <input type="radio" id="vo2-male" name="vo2-sex" value="male" checked />
+              <label for="vo2-male">Male</label>
+              <input type="radio" id="vo2-female" name="vo2-sex" value="female" />
+              <label for="vo2-female">Female</label>
+            </div>
+          </div>
+
+          <!-- Cooper Test fields -->
+          <div id="vo2-fields-cooper" class="method-fields active">
+            <div class="field">
+              <label for="vo2-cooper-dist">Distance covered in 12 minutes <span class="hint">metres</span></label>
+              <input type="number" id="vo2-cooper-dist" placeholder="e.g. 2800" min="100" max="6000" step="1" />
+            </div>
+          </div>
+
+          <!-- Race Time fields -->
+          <div id="vo2-fields-race" class="method-fields">
+            <div class="field">
+              <label for="vo2-race-dist">Race distance <span class="hint">km</span></label>
+              <select id="vo2-race-dist">
+                <option value="">— select distance —</option>
+                <option value="1">1 km</option>
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+                <option value="21.0975">Half Marathon — 21.1 km</option>
+                <option value="42.195">Marathon — 42.2 km</option>
+                <option value="custom">Custom…</option>
+              </select>
+              <div class="custom-distance-wrap" id="vo2-race-custom-wrap">
+                <input type="number" id="vo2-race-dist-custom" placeholder="Distance in km" min="0.1" step="0.1" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Race time</label>
+              <div class="split-inputs">
+                <input type="number" id="vo2-race-h" placeholder="HH" min="0" max="23" step="1" aria-label="Hours" />
+                <span class="sep">h</span>
+                <input type="number" id="vo2-race-m" placeholder="MM" min="0" max="59" step="1" aria-label="Minutes" />
+                <span class="sep">m</span>
+                <input type="number" id="vo2-race-s" placeholder="SS" min="0" max="59" step="1" aria-label="Seconds" />
+                <span class="sep">s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rockport Walk Test fields -->
+          <div id="vo2-fields-rockport" class="method-fields">
+            <div class="field">
+              <label for="vo2-rock-weight">Body weight</label>
+              <div class="input-row">
+                <input type="number" id="vo2-rock-weight" placeholder="e.g. 80" min="30" max="300" step="0.5" />
+                <div class="unit-toggle">
+                  <input type="radio" id="vo2-rock-kg"  name="vo2-rock-unit" value="kg"  checked />
+                  <label for="vo2-rock-kg">kg</label>
+                  <input type="radio" id="vo2-rock-lbs" name="vo2-rock-unit" value="lbs" />
+                  <label for="vo2-rock-lbs">lbs</label>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>1-mile walk time</label>
+              <div class="split-inputs">
+                <input type="number" id="vo2-rock-m" placeholder="MM" min="0" max="59" step="1" aria-label="Minutes" />
+                <span class="sep">m</span>
+                <input type="number" id="vo2-rock-s" placeholder="SS" min="0" max="59" step="1" aria-label="Seconds" />
+                <span class="sep">s</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="vo2-rock-hr">Heart rate at finish <span class="hint">bpm</span></label>
+              <input type="number" id="vo2-rock-hr" placeholder="e.g. 130" min="60" max="220" step="1" />
+            </div>
+          </div>
+
+        </div>
+        <button class="btn-calc" id="vo2-calc-btn">Estimate VO2 Max</button>
+        <p class="error-msg" id="vo2-error"></p>
+      </div>
+
+      <!-- Result -->
+      <div class="result-panel" id="vo2-result">
+        <h3>Estimated VO2 Max</h3>
+        <div class="result-primary">
+          <span class="result-value" id="vo2-result-value">—</span>
+          <span class="result-unit">ml/kg/min</span>
+        </div>
+        <div>
+          <span class="vo2-category" id="vo2-category-badge"></span>
+        </div>
+        <p class="result-label" id="vo2-fitness-age" style="margin-top:10px;"></p>
+        <p class="result-label" id="vo2-result-note" style="margin-top:4px;"></p>
+      </div>
+
+    </section>
+
+    <!-- Tab: Recovery Score Tool -->
+    <section id="panel-recovery" class="tab-panel" role="tabpanel" aria-labelledby="tab-recovery">
+
+      <div class="calc-header">
+        <h2>Recovery Score Tool</h2>
+        <p>Combine objective data and how you feel to get a single recovery score.</p>
+      </div>
+
+      <!-- Objective inputs -->
+      <div class="calc-card">
+        <h3>Objective Measures</h3>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="rec-sleep-hrs">Sleep duration <span class="hint">hours</span></label>
+            <input type="number" id="rec-sleep-hrs" placeholder="e.g. 7.5" min="0" max="24" step="0.25" />
+          </div>
+
+          <div class="field">
+            <p class="field-sub-label">Resting heart rate</p>
+            <div class="paired-inputs">
+              <div class="field">
+                <label for="rec-rhr-today">Today's RHR <span class="hint">bpm</span></label>
+                <input type="number" id="rec-rhr-today" placeholder="e.g. 58" min="30" max="120" step="1" />
+              </div>
+              <div class="field">
+                <label for="rec-rhr-base">Your baseline <span class="hint">bpm</span></label>
+                <input type="number" id="rec-rhr-base" placeholder="e.g. 52" min="30" max="120" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <p class="optional-divider"><span>HRV — optional</span></p>
+            <p class="field-sub-label" style="margin-top:12px;">Heart rate variability <span style="font-weight:400;text-transform:none;">(leave blank to skip)</span></p>
+            <div class="paired-inputs" style="margin-top:8px;">
+              <div class="field">
+                <label for="rec-hrv-today">Today's HRV <span class="hint">ms</span></label>
+                <input type="number" id="rec-hrv-today" placeholder="e.g. 62" min="1" max="300" step="1" />
+              </div>
+              <div class="field">
+                <label for="rec-hrv-base">Your baseline <span class="hint">ms</span></label>
+                <input type="number" id="rec-hrv-base" placeholder="e.g. 70" min="1" max="300" step="1" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Subjective inputs -->
+      <div class="calc-card">
+        <h3>Subjective Ratings</h3>
+        <div class="field-group">
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <label for="rec-soreness">Muscle soreness</label>
+              <span class="slider-value" id="val-soreness">5</span>
+            </div>
+            <input type="range" id="rec-soreness" min="1" max="10" value="5" />
+            <div class="slider-ticks"><span>1 — very sore</span><span>10 — no soreness</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <label for="rec-sleep-q">Sleep quality</label>
+              <span class="slider-value" id="val-sleep-q">5</span>
+            </div>
+            <input type="range" id="rec-sleep-q" min="1" max="10" value="5" />
+            <div class="slider-ticks"><span>1 — terrible</span><span>10 — excellent</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <label for="rec-energy">Energy &amp; fatigue</label>
+              <span class="slider-value" id="val-energy">5</span>
+            </div>
+            <input type="range" id="rec-energy" min="1" max="10" value="5" />
+            <div class="slider-ticks"><span>1 — exhausted</span><span>10 — fully energised</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <label for="rec-stress">Stress &amp; mood</label>
+              <span class="slider-value" id="val-stress">5</span>
+            </div>
+            <input type="range" id="rec-stress" min="1" max="10" value="5" />
+            <div class="slider-ticks"><span>1 — high stress</span><span>10 — calm &amp; positive</span></div>
+          </div>
+
+        </div>
+        <button class="btn-calc" id="rec-calc-btn">Calculate Recovery Score</button>
+        <p class="error-msg" id="rec-error"></p>
+      </div>
+
+      <!-- Result -->
+      <div class="result-panel" id="rec-result">
+        <h3>Recovery Score</h3>
+        <div class="result-primary">
+          <span class="result-value" id="rec-result-value">—</span>
+          <span class="score-suffix">/ 100</span>
+        </div>
+        <div>
+          <span class="traffic-badge" id="rec-traffic-badge">
+            <span class="traffic-dot"></span>
+            <span id="rec-traffic-label"></span>
+          </span>
+        </div>
+        <p class="result-label" id="rec-result-note" style="margin-top:12px;"></p>
+      </div>
+
+    </section>
+
+    <!-- Tab: Endurance Nutrition Planner -->
+    <section id="panel-nutrition" class="tab-panel" role="tabpanel" aria-labelledby="tab-nutrition">
+
+      <div class="calc-header">
+        <h2>Endurance Nutrition Planner</h2>
+        <p>Three-phase fuelling plan — carb loading, event day, and post-event recovery.</p>
+      </div>
+
+      <!-- Athlete weight — used across all three phases -->
+      <div class="calc-card">
+        <h3>Athlete</h3>
+        <div class="field">
+          <label for="nut-weight">Body weight</label>
+          <div class="input-row">
+            <input type="number" id="nut-weight" placeholder="e.g. 80" min="30" max="300" step="0.5" />
+            <div class="unit-toggle">
+              <input type="radio" id="nut-kg"  name="nut-unit" value="kg"  checked />
+              <label for="nut-kg">kg</label>
+              <input type="radio" id="nut-lbs" name="nut-unit" value="lbs" />
+              <label for="nut-lbs">lbs</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day builder — populated dynamically by JS on init -->
+      <div id="nut-day-builder"></div>
+
+      <!-- Add another day + inline helper -->
+      <div class="btn-helper-wrap" style="margin-bottom:20px;">
+        <button class="btn-outline" id="btn-add-day" type="button" style="width:auto;">+ Add another event day</button>
+        <details class="info-helper">
+          <summary aria-label="What is Add another event day?">?</summary>
+          <p class="info-helper-content">Use this to add an additional event day. This is useful for multi-day competitions or events — for example, a CrossFit competition weekend with separate days of heats, or a stage race. Each day has its own set of time blocks, and the planner will calculate nutrition targets for each day independently, as well as a total across all days.</p>
+        </details>
+      </div>
+
+      <!-- Calculate -->
+      <button class="btn-calc" id="nut-calc-btn">Calculate Nutrition Plan</button>
+      <p class="error-msg" id="nut-error"></p>
+
+      <!-- Results — hidden until calculated -->
+      <div id="nut-results" style="display:none;">
+
+        <div class="phase-section">
+          <div class="phase-header">
+            <h3>Phase 1 — Carb Loading</h3>
+            <p class="phase-desc">Pre-event preparation based on total event duration.</p>
+          </div>
+          <div id="result-phase1"></div>
+        </div>
+
+        <div class="phase-section">
+          <div class="phase-header">
+            <h3>Phase 2 — Event Day Nutrition</h3>
+            <p class="phase-desc">Per-hour targets summed across all blocks.</p>
+          </div>
+          <div id="result-phase2"></div>
+        </div>
+
+        <div class="phase-section">
+          <div class="phase-header">
+            <h3>Phase 3 — Post-Event Recovery</h3>
+            <p class="phase-desc">Targets for the 30–60 minute post-event window.</p>
+          </div>
+          <div id="result-phase3"></div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- CTA — persistent across all tabs -->
+    <div class="cta-section">
+      <p><strong>Want a programme built around your numbers?</strong></p>
+      <p>Work with a coach who understands how all the pieces fit together.</p>
+      <a href="#" class="btn-primary">Book a free call</a>
+    </div>
+
+  </main>
+
+  <!-- ─── Footer ────────────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <p>&copy; 2026 <a href="/blsc-performance-toolkit/">BLSC</a> — Ben Lloyd Strength &amp; Conditioning. All rights reserved.</p>
+  </footer>
+
+  <!-- ─── Tab Switching Logic ───────────────────────────────────────── -->
+  <script>
+    (function () {
+      const tabs   = document.querySelectorAll('.tab-btn');
+      const panels = document.querySelectorAll('.tab-panel');
+
+      function activateTab(selectedTab) {
+        // Deactivate all
+        tabs.forEach(function (t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        panels.forEach(function (p) {
+          p.classList.remove('active');
+        });
+
+        // Activate the chosen tab + matching panel
+        selectedTab.classList.add('active');
+        selectedTab.setAttribute('aria-selected', 'true');
+
+        var panelId = selectedTab.getAttribute('aria-controls');
+        document.getElementById(panelId).classList.add('active');
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          activateTab(tab);
+        });
+
+        // Keyboard nav: left/right arrows move between tabs
+        tab.addEventListener('keydown', function (e) {
+          var idx = Array.from(tabs).indexOf(tab);
+          if (e.key === 'ArrowRight') {
+            var next = tabs[(idx + 1) % tabs.length];
+            next.focus();
+            activateTab(next);
+          } else if (e.key === 'ArrowLeft') {
+            var prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+            prev.focus();
+            activateTab(prev);
+          }
+        });
+      });
+    }());
+
+    /* ─── Recovery Score Tool ───────────────────────────────────────
+       Weighted composite of objective + subjective inputs (0–100).
+       Traffic light: Red 0–39 / Amber 40–69 / Green 70–100.
+
+       Weights:
+         Sleep duration    20%  (bumps to 25% if HRV skipped)
+         RHR vs baseline   20%  (bumps to 25% if HRV skipped)
+         HRV vs baseline   10%  (optional — redistributed if blank)
+         Muscle soreness   15%
+         Sleep quality     10%
+         Energy/fatigue    15%
+         Stress/mood       10%
+    ─────────────────────────────────────────────────────────────────── */
+    (function () {
+      /* ── Slider live-value display ── */
+      var sliders = [
+        { slider: 'rec-soreness', display: 'val-soreness' },
+        { slider: 'rec-sleep-q',  display: 'val-sleep-q'  },
+        { slider: 'rec-energy',   display: 'val-energy'   },
+        { slider: 'rec-stress',   display: 'val-stress'   }
+      ];
+
+      sliders.forEach(function (pair) {
+        var el  = document.getElementById(pair.slider);
+        var val = document.getElementById(pair.display);
+        el.addEventListener('input', function () { val.textContent = el.value; });
+      });
+
+      /* ── Element refs ── */
+      var sleepHrsEl   = document.getElementById('rec-sleep-hrs');
+      var rhrTodayEl   = document.getElementById('rec-rhr-today');
+      var rhrBaseEl    = document.getElementById('rec-rhr-base');
+      var hrvTodayEl   = document.getElementById('rec-hrv-today');
+      var hrvBaseEl    = document.getElementById('rec-hrv-base');
+      var sorenessEl   = document.getElementById('rec-soreness');
+      var sleepQEl     = document.getElementById('rec-sleep-q');
+      var energyEl     = document.getElementById('rec-energy');
+      var stressEl     = document.getElementById('rec-stress');
+      var calcBtn      = document.getElementById('rec-calc-btn');
+      var resultPanel  = document.getElementById('rec-result');
+      var resultValEl  = document.getElementById('rec-result-value');
+      var trafficBadge = document.getElementById('rec-traffic-badge');
+      var trafficLabel = document.getElementById('rec-traffic-label');
+      var noteEl       = document.getElementById('rec-result-note');
+      var errorEl      = document.getElementById('rec-error');
+
+      /* ── Scoring functions — each returns 0–100 ── */
+
+      function scoreSleep(hours) {
+        /* Optimal 7–9 hrs = 100; linear decay below 7 (→0 at 4h);
+           gentle decay above 9 (→60 at 12h) */
+        if (hours >= 7 && hours <= 9) return 100;
+        if (hours < 7) return Math.max(0, (hours - 4) / 3 * 100);
+        return Math.max(60, 100 - (hours - 9) / 3 * 40);
+      }
+
+      function scoreRHR(today, baseline) {
+        /* Higher than baseline = worse; 0% deviation = 100, +30% = 0 */
+        var dev = (today - baseline) / baseline * 100;
+        if (dev <= 0) return 100;
+        if (dev >= 30) return 0;
+        return 100 - (dev / 30 * 100);
+      }
+
+      function scoreHRV(today, baseline) {
+        /* Lower than baseline = worse; 0% deviation = 100, -30% = 0 */
+        var dev = (today - baseline) / baseline * 100;
+        if (dev >= 0) return 100;
+        if (dev <= -30) return 0;
+        return 100 + (dev / 30 * 100);
+      }
+
+      function scoreSlider(value) {
+        /* 1-10 slider → 0–100 linear */
+        return (value - 1) / 9 * 100;
+      }
+
+      /* ── Main calculate ── */
+      function calculate() {
+        errorEl.classList.remove('visible');
+        resultPanel.classList.remove('visible');
+
+        var sleepHrs  = parseFloat(sleepHrsEl.value);
+        var rhrToday  = parseFloat(rhrTodayEl.value);
+        var rhrBase   = parseFloat(rhrBaseEl.value);
+        var hrvToday  = parseFloat(hrvTodayEl.value) || null;
+        var hrvBase   = parseFloat(hrvBaseEl.value)  || null;
+        var soreness  = parseInt(sorenessEl.value, 10);
+        var sleepQ    = parseInt(sleepQEl.value,   10);
+        var energy    = parseInt(energyEl.value,   10);
+        var stress    = parseInt(stressEl.value,   10);
+
+        /* Validate required fields */
+        if (isNaN(sleepHrs) || sleepHrs < 0 || sleepHrs > 24) {
+          errorEl.textContent = 'Enter a valid sleep duration (hours).';
+          errorEl.classList.add('visible'); return;
+        }
+        if (!rhrToday || !rhrBase) {
+          errorEl.textContent = 'Enter today\'s resting HR and your personal baseline.';
+          errorEl.classList.add('visible'); return;
+        }
+
+        /* HRV: both fields needed, or skip */
+        var useHRV = (hrvToday !== null && hrvBase !== null && !isNaN(hrvToday) && !isNaN(hrvBase));
+
+        /* Component scores */
+        var sSleep    = scoreSleep(sleepHrs);
+        var sRHR      = scoreRHR(rhrToday, rhrBase);
+        var sHRV      = useHRV ? scoreHRV(hrvToday, hrvBase) : 0;
+        var sSoreness = scoreSlider(soreness);
+        var sSleepQ   = scoreSlider(sleepQ);
+        var sEnergy   = scoreSlider(energy);
+        var sStress   = scoreSlider(stress);
+
+        /* Weights — redistribute HRV 10% equally across sleep + RHR if skipped */
+        var wSleep = useHRV ? 0.20 : 0.25;
+        var wRHR   = useHRV ? 0.20 : 0.25;
+        var wHRV   = useHRV ? 0.10 : 0.00;
+
+        var total = (sSleep    * wSleep)
+                  + (sRHR     * wRHR)
+                  + (sHRV     * wHRV)
+                  + (sSoreness * 0.15)
+                  + (sSleepQ   * 0.10)
+                  + (sEnergy   * 0.15)
+                  + (sStress   * 0.10);
+
+        var score = Math.round(total);
+
+        /* Traffic light category */
+        var category, cls;
+        if (score <= 39)      { category = 'Red — prioritise recovery';   cls = 'red';   }
+        else if (score <= 69) { category = 'Amber — proceed with caution'; cls = 'amber'; }
+        else                  { category = 'Green — good to train';        cls = 'green'; }
+
+        /* Render */
+        resultValEl.textContent = score;
+        trafficBadge.className  = 'traffic-badge ' + cls;
+        trafficLabel.textContent = category;
+        noteEl.textContent = useHRV
+          ? 'HRV included in scoring.'
+          : 'HRV not entered — weighting redistributed across sleep and resting HR.';
+
+        resultPanel.classList.add('visible');
+      }
+
+      calcBtn.addEventListener('click', calculate);
+    }());
+
+    /* ─── VO2 Max Estimator ─────────────────────────────────────────
+       Three methods:
+         Cooper Test  → VO2max = (distance_m - 504.9) / 44.73
+         Race Time    → Daniels/Gilbert formula (velocity + %VO2max model)
+         Rockport     → VO2max = 132.853 − (0.0769×lbs) − (0.3877×age)
+                                  + (6.315×sex) − (3.2649×time_min) − (0.1565×hr)
+       Category benchmarked against age/sex norms (ACSM).
+    ─────────────────────────────────────────────────────────────────── */
+    (function () {
+      /* ── Element refs ── */
+      var methodSel     = document.getElementById('vo2-method');
+      var allFields     = document.querySelectorAll('.method-fields');
+      var ageEl         = document.getElementById('vo2-age');
+      var calcBtn       = document.getElementById('vo2-calc-btn');
+      var resultPanel   = document.getElementById('vo2-result');
+      var resultVal     = document.getElementById('vo2-result-value');
+      var categoryBadge = document.getElementById('vo2-category-badge');
+      var fitnessAgeEl  = document.getElementById('vo2-fitness-age');
+      var resultNote    = document.getElementById('vo2-result-note');
+      var errorEl       = document.getElementById('vo2-error');
+
+      /* Cooper */
+      var cooperDist = document.getElementById('vo2-cooper-dist');
+
+      /* Race Time */
+      var raceDistSel    = document.getElementById('vo2-race-dist');
+      var raceCustomWrap = document.getElementById('vo2-race-custom-wrap');
+      var raceDistCustom = document.getElementById('vo2-race-dist-custom');
+      var raceH = document.getElementById('vo2-race-h');
+      var raceM = document.getElementById('vo2-race-m');
+      var raceS = document.getElementById('vo2-race-s');
+
+      /* Rockport */
+      var rockWeight = document.getElementById('vo2-rock-weight');
+      var rockM      = document.getElementById('vo2-rock-m');
+      var rockS      = document.getElementById('vo2-rock-s');
+      var rockHR     = document.getElementById('vo2-rock-hr');
+
+      /* ── Method switching ── */
+      methodSel.addEventListener('change', function () {
+        allFields.forEach(function (f) { f.classList.remove('active'); });
+        var active = document.getElementById('vo2-fields-' + methodSel.value);
+        if (active) active.classList.add('active');
+        errorEl.classList.remove('visible');
+        resultPanel.classList.remove('visible');
+      });
+
+      /* Show/hide custom race distance */
+      raceDistSel.addEventListener('change', function () {
+        if (raceDistSel.value === 'custom') {
+          raceCustomWrap.classList.add('visible');
+          raceDistCustom.focus();
+        } else {
+          raceCustomWrap.classList.remove('visible');
+          raceDistCustom.value = '';
+        }
+      });
+
+      /* ── Age/sex norms (ACSM) ──────────────────────────────────────
+         Each row: [ageMin, ageMax, poor, belowAvg, average, good]
+         Category: < poor → Poor, < belowAvg → Below Average, etc.
+         ≥ good → Excellent
+      ──────────────────────────────────────────────────────────────── */
+      var norms = {
+        male: [
+          [20, 29, 33, 37, 43, 52],
+          [30, 39, 31, 35, 41, 49],
+          [40, 49, 30, 34, 40, 48],
+          [50, 59, 26, 30, 36, 44],
+          [60, 99, 20, 25, 32, 40]
+        ],
+        female: [
+          [20, 29, 28, 34, 43, 50],
+          [30, 39, 27, 32, 38, 46],
+          [40, 49, 25, 30, 36, 43],
+          [50, 59, 21, 25, 31, 38],
+          [60, 99, 12, 18, 27, 35]
+        ]
+      };
+
+      var categoryLabels = ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
+      var categoryClasses = ['poor', 'below-avg', 'average', 'good', 'excellent'];
+
+      function getCategory(vo2, age, sex) {
+        var rows = norms[sex] || norms.male;
+        var row  = null;
+        for (var i = 0; i < rows.length; i++) {
+          if (age >= rows[i][0] && age <= rows[i][1]) { row = rows[i]; break; }
+        }
+        if (!row) return null;
+        /* thresholds are at indices 2-5 */
+        if (vo2 < row[2]) return 0; /* Poor */
+        if (vo2 < row[3]) return 1; /* Below Average */
+        if (vo2 < row[4]) return 2; /* Average */
+        if (vo2 < row[5]) return 3; /* Good */
+        return 4;                   /* Excellent */
+      }
+
+      /* ── Fitness Age ─────────────────────────────────────────────────
+         Reference points: representative age + average VO2max for that
+         age, derived from the midpoint of the "Average" category in the
+         ACSM norms table already used for category scoring.
+         VO2max decreases monotonically with age, so we can interpolate
+         linearly between adjacent brackets. Capped at [20, 70].
+      ─────────────────────────────────────────────────────────────────── */
+      var FA_REFS = {
+        male:   [[25, 40.0], [35, 38.0], [45, 37.0], [55, 33.0], [65, 28.5]],
+        female: [[25, 38.5], [35, 35.0], [45, 33.0], [55, 28.0], [65, 22.5]]
+      };
+
+      function calcFitnessAge(vo2, sex) {
+        var pts = FA_REFS[sex] || FA_REFS.male;
+
+        /* Above highest-bracket average → younger than 20; floor at 20 */
+        if (vo2 >= pts[0][1]) return 20;
+        /* Below lowest-bracket average → older than 65; ceil at 70 */
+        if (vo2 <= pts[pts.length - 1][1]) return 70;
+
+        /* Linear interpolation between the two surrounding brackets */
+        for (var i = 0; i < pts.length - 1; i++) {
+          var a1 = pts[i][0],     v1 = pts[i][1];
+          var a2 = pts[i + 1][0], v2 = pts[i + 1][1];
+          if (vo2 <= v1 && vo2 >= v2) {
+            return Math.round(a1 + (v1 - vo2) / (v1 - v2) * (a2 - a1));
+          }
+        }
+        return 70; /* fallback */
+      }
+
+      /* ── Formulas ── */
+      function calcCooper(distM) {
+        return (distM - 504.9) / 44.73;
+      }
+
+      function calcRace(distKm, timeSec) {
+        /* Daniels/Gilbert model */
+        var t = timeSec / 60;              /* race time in minutes */
+        var v = (distKm * 1000) / t;       /* velocity in m/min */
+        var pct = 0.8
+                + 0.1894393 * Math.exp(-0.012778  * t)
+                + 0.2989558 * Math.exp(-0.1932605 * t);
+        var o2  = -4.60 + 0.182258 * v + 0.000104 * v * v;
+        return o2 / pct;
+      }
+
+      function calcRockport(weightLbs, ageFactor, sexFactor, walkMin, hr) {
+        return 132.853
+          - (0.0769  * weightLbs)
+          - (0.3877  * ageFactor)
+          + (6.315   * sexFactor)
+          - (3.2649  * walkMin)
+          - (0.1565  * hr);
+      }
+
+      /* ── Helpers ── */
+      function getSex()  { return document.querySelector('input[name="vo2-sex"]:checked').value; }
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('visible');
+        resultPanel.classList.remove('visible');
+      }
+
+      /* ── Main calculate ── */
+      function calculate() {
+        errorEl.classList.remove('visible');
+        resultPanel.classList.remove('visible');
+
+        var method = methodSel.value;
+        var age    = parseInt(ageEl.value, 10);
+        var sex    = getSex();
+
+        if (!age || age < 18 || age > 80) {
+          showError('Enter a valid age between 18 and 80.'); return;
+        }
+
+        var vo2 = null;
+        var note = '';
+
+        if (method === 'cooper') {
+          var d = parseFloat(cooperDist.value);
+          if (!d || d <= 0) { showError('Enter the distance covered in 12 minutes.'); return; }
+          vo2  = calcCooper(d);
+          note = 'Cooper Test — ' + d + ' m in 12 minutes.';
+
+        } else if (method === 'race') {
+          var distKm;
+          if (raceDistSel.value === '') { showError('Select a race distance.'); return; }
+          if (raceDistSel.value === 'custom') {
+            distKm = parseFloat(raceDistCustom.value);
+            if (!distKm || distKm <= 0) { showError('Enter a valid custom distance.'); return; }
+          } else {
+            distKm = parseFloat(raceDistSel.value);
+          }
+          var h  = parseInt(raceH.value, 10) || 0;
+          var m  = parseInt(raceM.value, 10) || 0;
+          var s  = parseInt(raceS.value, 10) || 0;
+          var totalSec = h * 3600 + m * 60 + s;
+          if (totalSec <= 0) { showError('Enter your race time.'); return; }
+          vo2  = calcRace(distKm, totalSec);
+          note = 'Race Time — ' + distKm + ' km.';
+
+        } else if (method === 'rockport') {
+          var w    = parseFloat(rockWeight.value);
+          var unit = document.querySelector('input[name="vo2-rock-unit"]:checked').value;
+          var wLbs = (unit === 'kg') ? w * 2.2046 : w;
+          var wMin = (parseInt(rockM.value, 10) || 0) + (parseInt(rockS.value, 10) || 0) / 60;
+          var hr   = parseInt(rockHR.value, 10);
+
+          if (!w || w <= 0)   { showError('Enter your body weight.'); return; }
+          if (wMin <= 0)      { showError('Enter your 1-mile walk time.'); return; }
+          if (!hr || hr <= 0) { showError('Enter your heart rate at finish.'); return; }
+
+          var sexFactor = (sex === 'male') ? 1 : 0;
+          vo2  = calcRockport(wLbs, age, sexFactor, wMin, hr);
+          note = 'Rockport Walk Test — 1-mile walk.';
+        }
+
+        if (vo2 === null || isNaN(vo2) || vo2 <= 0) {
+          showError('Could not calculate — check your inputs.'); return;
+        }
+
+        vo2 = Math.round(vo2 * 10) / 10; /* 1 decimal place */
+
+        var catIdx = getCategory(vo2, age, sex);
+
+        resultVal.textContent = vo2;
+
+        /* Category badge */
+        categoryBadge.className = 'vo2-category'; /* reset classes */
+        if (catIdx !== null) {
+          categoryBadge.classList.add(categoryClasses[catIdx]);
+          categoryBadge.textContent = categoryLabels[catIdx];
+        } else {
+          categoryBadge.textContent = '';
+        }
+
+        /* Fitness Age */
+        var fitAge = calcFitnessAge(vo2, sex);
+        fitnessAgeEl.innerHTML = 'Fitness age: <span style="color:var(--color-accent);font-weight:700;">' + fitAge + '</span> years';
+
+        resultNote.textContent = note;
+        resultPanel.classList.add('visible');
+      }
+
+      calcBtn.addEventListener('click', calculate);
+    }());
+
+    /* ─── Running Pace Calculator ───────────────────────────────────
+       Three fields: Distance (km), Time (H:MM:SS), Pace (MM:SS/km).
+       User fills any two; the calculator solves for the empty one.
+    ─────────────────────────────────────────────────────────────────── */
+    (function () {
+      var distSelect  = document.getElementById('pace-dist-select');
+      var customWrap  = document.getElementById('pace-custom-wrap');
+      var distCustom  = document.getElementById('pace-dist-custom');
+      var timeH       = document.getElementById('pace-time-h');
+      var timeM       = document.getElementById('pace-time-m');
+      var timeS       = document.getElementById('pace-time-s');
+      var paceMin     = document.getElementById('pace-min');
+      var paceSec     = document.getElementById('pace-sec');
+      var calcBtn     = document.getElementById('pace-calc-btn');
+      var resultPanel = document.getElementById('pace-result');
+      var resultHead  = document.getElementById('pace-result-heading');
+      var resultVal   = document.getElementById('pace-result-value');
+      var resultNote  = document.getElementById('pace-result-note');
+      var errorEl     = document.getElementById('pace-error');
+
+      /* Show/hide custom distance input */
+      distSelect.addEventListener('change', function () {
+        if (distSelect.value === 'custom') {
+          customWrap.classList.add('visible');
+          distCustom.focus();
+        } else {
+          customWrap.classList.remove('visible');
+          distCustom.value = '';
+        }
+      });
+
+      /* Helpers */
+      function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+      function getDistance() {
+        /* Returns km as a number, or null if not set */
+        if (distSelect.value === '') return null;
+        if (distSelect.value === 'custom') {
+          var v = parseFloat(distCustom.value);
+          return (v > 0) ? v : null;
+        }
+        return parseFloat(distSelect.value);
+      }
+
+      function getTotalSeconds() {
+        /* Returns total seconds, or null if all time fields are blank */
+        var h = parseInt(timeH.value, 10) || 0;
+        var m = parseInt(timeM.value, 10) || 0;
+        var s = parseInt(timeS.value, 10) || 0;
+        if (!timeH.value && !timeM.value && !timeS.value) return null;
+        return h * 3600 + m * 60 + s;
+      }
+
+      function getPaceSeconds() {
+        /* Returns seconds-per-km, or null if pace fields are blank */
+        if (!paceMin.value && !paceSec.value) return null;
+        var m = parseInt(paceMin.value, 10) || 0;
+        var s = parseInt(paceSec.value, 10) || 0;
+        return m * 60 + s;
+      }
+
+      function formatTime(totalSec) {
+        /* Formats total seconds as H:MM:SS or M:SS */
+        var s = Math.round(totalSec);
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var sec = s % 60;
+        if (h > 0) return h + ':' + pad(m) + ':' + pad(sec);
+        return m + ':' + pad(sec);
+      }
+
+      function formatPace(secPerKm) {
+        /* Formats seconds-per-km as M:SS */
+        var s = Math.round(secPerKm);
+        var m = Math.floor(s / 60);
+        var sec = s % 60;
+        return m + ':' + pad(sec);
+      }
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('visible');
+        resultPanel.classList.remove('visible');
+      }
+
+      function calculate() {
+        errorEl.classList.remove('visible');
+        resultPanel.classList.remove('visible');
+
+        var dist  = getDistance();
+        var time  = getTotalSeconds();
+        var pace  = getPaceSeconds();
+
+        var filled = [dist !== null, time !== null, pace !== null];
+        var filledCount = filled.filter(Boolean).length;
+
+        if (filledCount < 2) {
+          showError('Fill in any two fields to calculate the third.');
+          return;
+        }
+
+        if (filledCount === 3) {
+          /* All three filled — solve for pace using distance + time */
+          pace = null;
+          filled[2] = false;
+        }
+
+        /* Validate individual fields */
+        if (dist !== null && dist <= 0) { showError('Distance must be greater than 0.'); return; }
+        if (time !== null && time <= 0)  { showError('Time must be greater than 0.'); return; }
+        if (pace !== null && pace <= 0)  { showError('Pace must be greater than 0.'); return; }
+
+        var heading, value, note;
+
+        if (!filled[0]) {
+          /* Solve for distance */
+          var distKm = time / pace;
+          heading = 'Distance';
+          value   = distKm.toFixed(2) + ' km';
+          note    = formatTime(time) + ' at ' + formatPace(pace) + ' / km';
+
+        } else if (!filled[1]) {
+          /* Solve for time */
+          var totalSec = dist * pace;
+          heading = 'Finish time';
+          value   = formatTime(totalSec);
+          note    = dist + ' km at ' + formatPace(pace) + ' / km';
+
+        } else {
+          /* Solve for pace */
+          var paceSecPerKm = time / dist;
+          heading = 'Pace';
+          value   = formatPace(paceSecPerKm) + ' / km';
+          note    = dist + ' km in ' + formatTime(time);
+        }
+
+        resultHead.textContent = heading;
+        resultVal.textContent  = value;
+        resultNote.textContent = note;
+        resultPanel.classList.add('visible');
+      }
+
+      calcBtn.addEventListener('click', calculate);
+    }());
+
+    /* ─── 1RM Calculator ─────────────────────────────────────────────
+       Formula: Epley  → 1RM = weight × (1 + reps / 30)
+       Special case: 1 rep entered means the weight IS the 1RM.
+    ─────────────────────────────────────────────────────────────────── */
+    (function () {
+      var btn       = document.getElementById('orm-calc-btn');
+      var weightEl  = document.getElementById('orm-weight');
+      var repsEl    = document.getElementById('orm-reps');
+      var resultEl  = document.getElementById('orm-result');
+      var valueEl   = document.getElementById('orm-result-value');
+      var unitEl    = document.getElementById('orm-result-unit');
+      var noteEl    = document.getElementById('orm-result-note');
+      var errorEl   = document.getElementById('orm-error');
+
+      function getUnit() {
+        return document.querySelector('input[name="orm-unit"]:checked').value;
+      }
+
+      function calculate() {
+        var weight = parseFloat(weightEl.value);
+        var reps   = parseInt(repsEl.value, 10);
+        var unit   = getUnit();
+
+        // Reset state
+        errorEl.classList.remove('visible');
+        resultEl.classList.remove('visible');
+
+        // Validate
+        if (!weight || weight <= 0) {
+          errorEl.textContent = 'Enter a valid weight.';
+          errorEl.classList.add('visible');
+          return;
+        }
+        if (!reps || reps < 1 || reps > 20) {
+          errorEl.textContent = 'Enter reps between 1 and 20.';
+          errorEl.classList.add('visible');
+          return;
+        }
+
+        var orm, note;
+
+        if (reps === 1) {
+          // Lifting a true single — weight entered is the 1RM
+          orm  = weight;
+          note = 'You lifted a single — that weight is your 1RM.';
+        } else {
+          // Epley formula
+          orm  = weight * (1 + reps / 30);
+          note = 'Epley formula — based on ' + weight + ' ' + unit + ' × ' + reps + ' reps.';
+        }
+
+        valueEl.textContent = Math.round(orm);
+        unitEl.textContent  = unit;
+        noteEl.textContent  = note;
+        resultEl.classList.add('visible');
+      }
+
+      btn.addEventListener('click', calculate);
+
+      // Allow Enter key from either input field
+      [weightEl, repsEl].forEach(function (el) {
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') calculate();
+        });
+      });
+    }());
+
+    /* ─── Endurance Nutrition Planner ───────────────────────────────
+       Phase 1 — Carb Loading  : based on total event duration
+       Phase 2 — Event Day     : per-block nutrition, summed per day
+       Phase 3 — Post-Event    : fixed g/kg recovery targets
+       UI is built dynamically: up to 5 days, up to 5 blocks each.
+    ─────────────────────────────────────────────────────────────────── */
+    (function () {
+
+      /* ── DOM refs ── */
+      var dayBuilder = document.getElementById('nut-day-builder');
+      var addDayBtn  = document.getElementById('btn-add-day');
+      var calcBtn    = document.getElementById('nut-calc-btn');
+      var errorEl    = document.getElementById('nut-error');
+      var resultsEl  = document.getElementById('nut-results');
+      var phase1El   = document.getElementById('result-phase1');
+      var phase2El   = document.getElementById('result-phase2');
+      var phase3El   = document.getElementById('result-phase3');
+
+      /* Unique ID counter for RPE slider/display pairs */
+      var uid = 0;
+      function nextId() { return 'nu-' + (++uid); }
+
+      /* ── Weight helper ── */
+      function getWeightKg() {
+        var w    = parseFloat(document.getElementById('nut-weight').value);
+        var unit = document.querySelector('input[name="nut-unit"]:checked').value;
+        return (unit === 'lbs') ? w / 2.2046 : w;
+      }
+
+      /* ── Create a single block card ──────────────────────────────── */
+      function createBlock(isFirst) {
+        var rpeId = nextId();
+
+        var div = document.createElement('div');
+        div.className = 'block-card';
+
+        div.innerHTML =
+          '<div class="block-header">' +
+            '<span class="block-title">' + (isFirst ? 'Block 1 — required' : 'Block') + '</span>' +
+            (!isFirst ? '<button class="btn-remove-block" type="button">Remove</button>' : '') +
+          '</div>' +
+          '<div class="field-group">' +
+            /* Duration */
+            '<div class="field">' +
+              '<label>Duration</label>' +
+              '<div class="split-inputs">' +
+                '<input type="number" class="block-dur-h" placeholder="HH" min="0" max="23" step="1" aria-label="hours" />' +
+                '<span class="sep">h</span>' +
+                '<input type="number" class="block-dur-m" placeholder="MM" min="0" max="59" step="1" aria-label="mins" />' +
+                '<span class="sep">m</span>' +
+              '</div>' +
+            '</div>' +
+            /* RPE slider */
+            '<div class="slider-field">' +
+              '<div class="slider-header">' +
+                '<label>RPE intensity</label>' +
+                '<span class="slider-value" id="' + rpeId + '">5</span>' +
+              '</div>' +
+              '<input type="range" class="block-rpe" min="1" max="10" value="5" data-val="' + rpeId + '" />' +
+              '<div class="slider-ticks"><span>1 — easy</span><span>10 — maximal</span></div>' +
+            '</div>' +
+            /* Optional: sweat rate + temperature */
+            '<div>' +
+              '<p class="optional-divider" style="margin-bottom:12px;"><span>Optional</span></p>' +
+              '<div class="paired-inputs">' +
+                '<div class="field">' +
+                  '<label>Sweat rate <span class="hint">ml/hr</span></label>' +
+                  '<input type="number" class="block-sweat" placeholder="e.g. 800" min="100" max="3000" step="50" />' +
+                '</div>' +
+                '<div class="field">' +
+                  '<label>Temperature <span class="hint">°C</span></label>' +
+                  '<input type="number" class="block-temp" placeholder="e.g. 22" min="-10" max="50" step="1" />' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        /* RPE live update */
+        var slider = div.querySelector('.block-rpe');
+        slider.addEventListener('input', function () {
+          document.getElementById(this.dataset.val).textContent = this.value;
+        });
+
+        /* Remove-block listener */
+        var removeBtn = div.querySelector('.btn-remove-block');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', function () {
+            var container = div.closest('.blocks-container');
+            var daySection = div.closest('.day-section');
+            div.remove();
+            reindexBlocks(container);
+            daySection.querySelector('.btn-add-block').disabled = false;
+          });
+        }
+
+        return div;
+      }
+
+      /* ── Re-label blocks 1…n after add/remove ── */
+      function reindexBlocks(container) {
+        container.querySelectorAll('.block-card').forEach(function (card, i) {
+          card.querySelector('.block-title').textContent =
+            'Block ' + (i + 1) + (i === 0 ? ' — required' : '');
+        });
+      }
+
+      /* ── Create a full day section ───────────────────────────────── */
+      function createDay(dayNumber) {
+        var section = document.createElement('div');
+        section.className = 'day-section';
+
+        /* Header: "Day N" + optional remove button */
+        var header = document.createElement('div');
+        header.className = 'day-header';
+        var title = document.createElement('h4');
+        title.textContent = 'Day ' + dayNumber;
+        header.appendChild(title);
+
+        if (dayNumber > 1) {
+          var removeDay = document.createElement('button');
+          removeDay.type = 'button';
+          removeDay.className = 'btn-remove-day';
+          removeDay.textContent = 'Remove day';
+          removeDay.addEventListener('click', function () {
+            section.remove();
+            reindexDays();
+            addDayBtn.disabled = false;
+          });
+          header.appendChild(removeDay);
+        }
+
+        /* Block container with first block pre-added */
+        var blocksContainer = document.createElement('div');
+        blocksContainer.className = 'blocks-container';
+        blocksContainer.appendChild(createBlock(true));
+
+        /* Add-block button */
+        var addBlock = document.createElement('button');
+        addBlock.type = 'button';
+        addBlock.className = 'btn-outline btn-add-block';
+        addBlock.textContent = '+ Add block';
+        addBlock.style.cssText = 'width:auto;font-size:0.8rem;padding:8px 16px;margin-top:4px;';
+        addBlock.addEventListener('click', function () {
+          var count = blocksContainer.querySelectorAll('.block-card').length;
+          if (count >= 5) return;
+          blocksContainer.appendChild(createBlock(false));
+          reindexBlocks(blocksContainer);
+          if (blocksContainer.querySelectorAll('.block-card').length >= 5) {
+            addBlock.disabled = true;
+          }
+        });
+
+        /* Wrap add-block button with an inline "?" helper */
+        var addBlockWrap = document.createElement('div');
+        addBlockWrap.className = 'btn-helper-wrap';
+        addBlockWrap.style.marginTop = '4px';
+
+        var blockHelper = document.createElement('details');
+        blockHelper.className = 'info-helper';
+        blockHelper.innerHTML =
+          '<summary aria-label="What is Add block?">?</summary>' +
+          '<p class="info-helper-content">Use this to add an additional time block to your event day. ' +
+          'This is useful for multi-leg or multi-discipline events — for example, adding separate blocks ' +
+          'for the swim, bike, and run legs of a triathlon, or individual heats across a competition day. ' +
+          'Each block has its own duration and RPE, so your nutrition targets can reflect the varying demands ' +
+          'of each segment. You can add up to 4 extra blocks per day.</p>';
+
+        addBlockWrap.appendChild(addBlock);
+        addBlockWrap.appendChild(blockHelper);
+
+        section.appendChild(header);
+        section.appendChild(blocksContainer);
+        section.appendChild(addBlockWrap);
+        return section;
+      }
+
+      /* ── Re-label days 1…n after a day is removed ── */
+      function reindexDays() {
+        dayBuilder.querySelectorAll('.day-section').forEach(function (day, i) {
+          day.querySelector('h4').textContent = 'Day ' + (i + 1);
+        });
+      }
+
+      /* ── Initialise: Day 1 on load ── */
+      dayBuilder.appendChild(createDay(1));
+
+      /* ── Add-day button ── */
+      addDayBtn.addEventListener('click', function () {
+        var count = dayBuilder.querySelectorAll('.day-section').length;
+        if (count >= 5) return;
+        dayBuilder.appendChild(createDay(count + 1));
+        if (dayBuilder.querySelectorAll('.day-section').length >= 5) {
+          addDayBtn.disabled = true;
+        }
+      });
+
+      /* ── Nutrition formulas ──────────────────────────────────────────
+         All rates are per hour; totals = rate × duration.
+
+         Carbs (g/hr): base 30–60 scaled by RPE; duration bonus up to +30
+                       if block runs longer than 2 hours (cap 90 g/hr).
+         Fluids (ml/hr): base 400–800 scaled by RPE; +100–200 for temp
+                         above 25 °C; extra ml for high sweat rates.
+         Sodium (mg/hr): base 300–700 scaled by RPE; same temp/sweat
+                         adjustments.
+      ─────────────────────────────────────────────────────────────────── */
+      function calcBlock(durationHrs, rpe, sweat, temp) {
+        /* Carbs */
+        var carbBase  = 30 + (rpe - 1) / 9 * 30;
+        var carbBonus = durationHrs > 2 ? Math.min((durationHrs - 2) * 10, 30) : 0;
+        var carbRate  = Math.min(90, carbBase + carbBonus);
+        var carbs     = Math.round(carbRate * durationHrs);
+
+        /* Fluids */
+        var fluidBase = 400 + (rpe - 1) / 9 * 400;
+        var fluidAdj  = 0;
+        if (temp  !== null && temp  > 30) fluidAdj += 200;
+        else if (temp !== null && temp > 25) fluidAdj += 100;
+        if (sweat !== null && sweat > 800)  fluidAdj += (sweat - 800) * 0.5;
+        var fluids = Math.round(Math.min(1400, fluidBase + fluidAdj) * durationHrs);
+
+        /* Sodium */
+        var sodiumBase = 300 + (rpe - 1) / 9 * 400;
+        var sodiumAdj  = 0;
+        if (temp  !== null && temp  > 30)   sodiumAdj += 200;
+        else if (temp !== null && temp > 25) sodiumAdj += 100;
+        if (sweat !== null && sweat > 1500)  sodiumAdj += 300;
+        else if (sweat !== null && sweat > 1000) sodiumAdj += 150;
+        var sodium = Math.round(Math.min(1400, sodiumBase + sodiumAdj) * durationHrs);
+
+        return { carbs: carbs, fluids: fluids, sodium: sodium };
+      }
+
+      /* ── Result HTML helpers ── */
+      function nutrientGrid(carbs, fluids, sodium) {
+        return '<div class="nutrient-grid">' +
+          '<div class="nutrient-item"><span class="nutrient-label">Carbs</span>' +
+            '<span class="nutrient-value">' + carbs.toLocaleString() + 'g</span></div>' +
+          '<div class="nutrient-item"><span class="nutrient-label">Fluids</span>' +
+            '<span class="nutrient-value">' + fluids.toLocaleString() + 'ml</span></div>' +
+          '<div class="nutrient-item"><span class="nutrient-label">Sodium</span>' +
+            '<span class="nutrient-value">' + sodium.toLocaleString() + 'mg</span></div>' +
+        '</div>';
+      }
+
+      function planRow(label, value) {
+        return '<div class="plan-row"><span class="pr-label">' + label +
+               '</span><span class="pr-value">' + value + '</span></div>';
+      }
+
+      /* ── Main calculate ── */
+      function calculate() {
+        errorEl.classList.remove('visible');
+        resultsEl.style.display = 'none';
+
+        var weightKg = getWeightKg();
+        if (!weightKg || weightKg < 20) {
+          errorEl.textContent = 'Enter your body weight.';
+          errorEl.classList.add('visible'); return;
+        }
+
+        /* Read all days → blocks */
+        var allDays      = [];
+        var totalMinutes = 0;
+        var err          = null;
+
+        dayBuilder.querySelectorAll('.day-section').forEach(function (dayEl, di) {
+          if (err) return;
+          var dayBlocks = [];
+
+          dayEl.querySelectorAll('.block-card').forEach(function (blockEl, bi) {
+            if (err) return;
+            var h   = parseInt(blockEl.querySelector('.block-dur-h').value, 10) || 0;
+            var m   = parseInt(blockEl.querySelector('.block-dur-m').value, 10) || 0;
+            var dur = h * 60 + m;
+
+            if (bi === 0 && dur <= 0) {
+              err = 'Day ' + (di + 1) + ', Block 1 needs a duration.';
+              return;
+            }
+            if (dur <= 0) return; /* optional blocks with no duration are skipped */
+
+            var rpe   = parseInt(blockEl.querySelector('.block-rpe').value, 10);
+            var sweat = parseFloat(blockEl.querySelector('.block-sweat').value) || null;
+            var tempV = blockEl.querySelector('.block-temp').value;
+            var temp  = tempV !== '' ? parseFloat(tempV) : null;
+
+            totalMinutes += dur;
+            dayBlocks.push({
+              label:       'Block ' + (bi + 1),
+              durationHrs: dur / 60,
+              rpe:         rpe,
+              nutrition:   calcBlock(dur / 60, rpe, sweat, temp)
+            });
+          });
+
+          allDays.push(dayBlocks);
+        });
+
+        if (err) {
+          errorEl.textContent = err;
+          errorEl.classList.add('visible'); return;
+        }
+
+        /* ── Phase 1 — Carb Loading ── */
+        var p1html;
+        if (totalMinutes < 90) {
+          p1html = '<p class="no-loading-msg">No carb loading needed — total event duration is under 90 minutes.</p>';
+        } else {
+          var days, rateLabel, minCarbs, maxCarbs;
+          if (totalMinutes < 180) {
+            days      = '1 day';
+            rateLabel = '7–8g / kg';
+            minCarbs  = Math.round(7  * weightKg);
+            maxCarbs  = Math.round(8  * weightKg);
+          } else {
+            days      = '2–3 days';
+            rateLabel = '10–12g / kg';
+            minCarbs  = Math.round(10 * weightKg);
+            maxCarbs  = Math.round(12 * weightKg);
+          }
+          p1html = '<div class="plan-table">' +
+            planRow('Loading days',      days) +
+            planRow('Target rate',       rateLabel) +
+            planRow('Daily carb target', minCarbs + '–' + maxCarbs + 'g') +
+          '</div>';
+        }
+        phase1El.innerHTML = p1html;
+
+        /* ── Phase 2 — Event Day Nutrition ── */
+        var p2html = '';
+        var multiDay = allDays.length > 1;
+
+        allDays.forEach(function (dayBlocks, di) {
+          if (dayBlocks.length === 0) return;
+
+          /* Sum across blocks */
+          var totCarbs = 0, totFluids = 0, totSodium = 0;
+          dayBlocks.forEach(function (b) {
+            totCarbs  += b.nutrition.carbs;
+            totFluids += b.nutrition.fluids;
+            totSodium += b.nutrition.sodium;
+          });
+
+          /* Per-block breakdown (only shown if >1 block) */
+          var breakdownHTML = '';
+          if (dayBlocks.length > 1) {
+            dayBlocks.forEach(function (b) {
+              var dh  = Math.floor(b.durationHrs);
+              var dm  = Math.round((b.durationHrs - dh) * 60);
+              var dur = dh > 0 ? dh + 'h ' + dm + 'm' : dm + 'm';
+              breakdownHTML +=
+                '<div class="breakdown-block">' +
+                  '<div class="breakdown-block-title">' + b.label + ' — ' + dur + ' at RPE ' + b.rpe + '</div>' +
+                  '<div class="breakdown-row">' +
+                    '<span>Carbs</span><strong>' + b.nutrition.carbs + 'g</strong>' +
+                    '<span>Fluids</span><strong>' + b.nutrition.fluids + 'ml</strong>' +
+                    '<span>Sodium</span><strong>' + b.nutrition.sodium + 'mg</strong>' +
+                  '</div>' +
+                '</div>';
+            });
+          }
+
+          p2html +=
+            '<div class="day-result">' +
+              (multiDay ? '<p class="day-result-title">Day ' + (di + 1) + ' total</p>' : '') +
+              nutrientGrid(totCarbs, totFluids, totSodium) +
+              (dayBlocks.length > 1 ?
+                '<details class="block-breakdown">' +
+                  '<summary>Show block breakdown</summary>' +
+                  '<div class="breakdown-content">' + breakdownHTML + '</div>' +
+                '</details>' : '') +
+            '</div>';
+        });
+
+        phase2El.innerHTML = p2html;
+
+        /* ── Phase 3 — Post-Event Recovery ── */
+        phase3El.innerHTML =
+          '<div class="plan-table">' +
+            planRow('Carbohydrate',
+              Math.round(1.0 * weightKg) + '–' + Math.round(1.2 * weightKg) + 'g') +
+            planRow('Protein',
+              Math.round(0.3 * weightKg) + '–' + Math.round(0.4 * weightKg) + 'g') +
+          '</div>' +
+          '<p class="result-label" style="margin-top:10px;">Based on 1.0–1.2g/kg carbs and 0.3–0.4g/kg protein.</p>';
+
+        /* Show results */
+        resultsEl.style.display = 'block';
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      calcBtn.addEventListener('click', calculate);
+
+    }());
+  </script>
+
+</body>
+</html>

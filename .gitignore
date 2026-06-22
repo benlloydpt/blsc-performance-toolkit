@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Claude Code settings & memory
+.claude/
+
+# Old standalone HTML files (superseded by folder versions)
+running-pace-calculator.html
+strength-standards.html
+
+# Brand file (content is in CLAUDE.md)
+Branding/BLSC_Brand_File.md
